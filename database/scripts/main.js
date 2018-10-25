@@ -19,6 +19,7 @@
 // Shortcuts to DOM Elements.
 var messageForm = document.getElementById('message-form');
 var messageInput = document.getElementById('new-post-message');
+var priceInput = document.getElementById('new-post-price');
 var titleInput = document.getElementById('new-post-title');
 var signInButton = document.getElementById('sign-in-button');
 var signOutButton = document.getElementById('sign-out-button');
@@ -33,11 +34,19 @@ var myPostsMenuButton = document.getElementById('menu-my-posts');
 var myTopPostsMenuButton = document.getElementById('menu-my-top-posts');
 var listeningFirebaseRefs = [];
 
+var searchButton = document.getElementById('launcher_search');
+var searchText = document.getElementById('text_search');
+
+var photo = document.getElementById('get_file').onclick = function() {
+    document.getElementById('my_file').click();
+};
+
+
 /**
  * Saves a new post to the Firebase DB.
  */
 // [START write_fan_out]
-function writeNewPost(uid, username, picture, title, body) {
+function writeNewPost(uid, username, photo, title, body, price) {
   // A post entry.
   var postData = {
     author: username,
@@ -45,16 +54,17 @@ function writeNewPost(uid, username, picture, title, body) {
     body: body,
     title: title,
     starCount: 0,
-    authorPic: picture
+    objectPic: photo,
+	price: price
   };
 
   // Get a key for a new Post.
-  var newPostKey = firebase.database().ref().child('posts').push().key;
+  var newPostKey = firebase.database().ref().child('saleObjects').push().key;
 
   // Write the new post's data simultaneously in the posts list and the user's post list.
   var updates = {};
-  updates['/posts/' + newPostKey] = postData;
-  updates['/user-posts/' + uid + '/' + newPostKey] = postData;
+  updates['/saleObjects/' + newPostKey] = postData;
+  updates['/user-saleObjects/' + uid + '/' + newPostKey] = postData;
 
   return firebase.database().ref().update(updates);
 }
@@ -70,7 +80,7 @@ function toggleStar(postRef, uid) {
       if (post.stars && post.stars[uid]) {
         post.starCount--;
         post.stars[uid] = null;
-      } else {
+      } else if (post.author != uid) {
         post.starCount++;
         if (!post.stars) {
           post.stars = {};
@@ -86,7 +96,7 @@ function toggleStar(postRef, uid) {
 /**
  * Creates a post element.
  */
-function createPostElement(postId, title, text, author, authorId, authorPic) {
+function createPostElement(postId, title, text, author, authorId, authorPic, price) {
   var uid = firebase.auth().currentUser.uid;
 
   var html =
@@ -107,6 +117,9 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
             '<div class="starred material-icons">star</div>' +
             '<div class="star-count">0</div>' +
           '</span>' +
+		  '<div>' +
+              '<div class="price"></div>' +
+            '</div>' +
           '<div class="text"></div>' +
           '<div class="comments-container"></div>' +
           '<form class="add-comment" action="#">' +
@@ -134,13 +147,14 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
   // Set values.
   postElement.getElementsByClassName('text')[0].innerText = text;
   postElement.getElementsByClassName('mdl-card__title-text')[0].innerText = title;
-  postElement.getElementsByClassName('username')[0].innerText = author || 'Anonymous';
   postElement.getElementsByClassName('avatar')[0].style.backgroundImage = 'url("' +
       (authorPic || './silhouette.jpg') + '")';
+  postElement.getElementsByClassName('price')[0].innerText = price + " €";
 
+	  
   // Listen for comments.
   // [START child_event_listener_recycler]
-  var commentsRef = firebase.database().ref('post-comments/' + postId);
+  var commentsRef = firebase.database().ref('object-comments/' + postId);
   commentsRef.on('child_added', function(data) {
     addCommentElement(postElement, data.key, data.val().text, data.val().author);
   });
@@ -156,14 +170,14 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
 
   // Listen for likes counts.
   // [START post_value_event_listener]
-  var starCountRef = firebase.database().ref('posts/' + postId + '/starCount');
+  var starCountRef = firebase.database().ref('saleObjects/' + postId + '/starCount');
   starCountRef.on('value', function(snapshot) {
     updateStarCount(postElement, snapshot.val());
   });
   // [END post_value_event_listener]
 
   // Listen for the starred status.
-  var starredStatusRef = firebase.database().ref('posts/' + postId + '/stars/' + uid);
+  var starredStatusRef = firebase.database().ref('saleObjects/' + postId + '/stars/' + uid);
   starredStatusRef.on('value', function(snapshot) {
     updateStarredByCurrentUser(postElement, snapshot.val());
   });
@@ -183,10 +197,12 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
 
   // Bind starring action.
   var onStarClicked = function() {
-    var globalPostRef = firebase.database().ref('/posts/' + postId);
-    var userPostRef = firebase.database().ref('/user-posts/' + authorId + '/' + postId);
-    toggleStar(globalPostRef, uid);
-    toggleStar(userPostRef, uid);
+    var globalPostRef = firebase.database().ref('/saleObjects/' + postId);
+    var userPostRef = firebase.database().ref('/user-saleObjects/' + authorId + '/' + postId);
+    if (uid != authorId) {
+		toggleStar(globalPostRef, uid);
+		toggleStar(userPostRef, uid);
+	}
   };
   unStar.onclick = onStarClicked;
   star.onclick = onStarClicked;
@@ -198,7 +214,7 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
  * Writes a new comment for the given post.
  */
 function createNewComment(postId, username, uid, text) {
-  firebase.database().ref('post-comments/' + postId).push({
+  firebase.database().ref('object-comments/' + postId).push({
     text: text,
     author: username,
     uid: uid
@@ -262,21 +278,23 @@ function deleteComment(postElement, id) {
 function startDatabaseQueries() {
   // [START my_top_posts_query]
   var myUserId = firebase.auth().currentUser.uid;
-  var topUserPostsRef = firebase.database().ref('user-posts/' + myUserId).orderByChild('starCount');
+  var topUserPostsRef = firebase.database().ref('user-saleObjects/' + myUserId).orderByChild('starCount');
   // [END my_top_posts_query]
   // [START recent_posts_query]
-  var recentPostsRef = firebase.database().ref('posts').limitToLast(100);
+  var recentPostsRef = firebase.database().ref('saleObjects').limitToLast(100);
   // [END recent_posts_query]
-  var userPostsRef = firebase.database().ref('user-posts/' + myUserId);
+  var userPostsRef = firebase.database().ref('user-saleObjects/' + myUserId);
 
   var fetchPosts = function(postsRef, sectionElement) {
     postsRef.on('child_added', function(data) {
       var author = data.val().author || 'Anonymous';
       var containerElement = sectionElement.getElementsByClassName('posts-container')[0];
-      containerElement.insertBefore(
-        createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().authorPic),
-        containerElement.firstChild);
-    });
+      // if (data.val().starCount == 1) {  primer ho demano tot i despres ja filtrare
+        containerElement.insertBefore(
+          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().authorPic, data.val().price),
+          containerElement.firstChild);
+      // }
+      });
     postsRef.on('child_changed', function(data) {
       var containerElement = sectionElement.getElementsByClassName('posts-container')[0];
       var postElement = containerElement.getElementsByClassName('post-' + data.key)[0];
@@ -332,6 +350,7 @@ function cleanupUi() {
   listeningFirebaseRefs = [];
 }
 
+
 /**
  * The ID of the currently signed-in User. We keep track of this to detect Auth state change events that are just
  * programmatic token refresh but not a User status change.
@@ -364,15 +383,15 @@ function onAuthStateChanged(user) {
 /**
  * Creates a new post for the current user.
  */
-function newPostForCurrentUser(title, text) {
+function newPostForCurrentUser(title, text, price, photo) {
   // [START single_value_read]
   var userId = firebase.auth().currentUser.uid;
   return firebase.database().ref('/users/' + userId).once('value').then(function(snapshot) {
     var username = (snapshot.val() && snapshot.val().username) || 'Anonymous';
     // [START_EXCLUDE]
     return writeNewPost(firebase.auth().currentUser.uid, username,
-      firebase.auth().currentUser.photoURL,
-      title, text);
+      photo,
+      title, text, price);
     // [END_EXCLUDE]
   });
   // [END single_value_read]
@@ -419,12 +438,15 @@ window.addEventListener('load', function() {
     e.preventDefault();
     var text = messageInput.value;
     var title = titleInput.value;
-    if (text && title) {
-      newPostForCurrentUser(title, text).then(function() {
+	var price = priceInput.value;
+	var photo = photo.value;
+    if (text && title && price) {
+      newPostForCurrentUser(title, text, price, photo).then(function() {
         myPostsMenuButton.click();
       });
       messageInput.value = '';
       titleInput.value = '';
+	  priceInput.value = '';
     }
   };
 
@@ -438,10 +460,14 @@ window.addEventListener('load', function() {
   myTopPostsMenuButton.onclick = function() {
     showSection(topUserPostsSection, myTopPostsMenuButton);
   };
+  searchButton.onclick = function() {
+
+  };
   addButton.onclick = function() {
     showSection(addPost);
     messageInput.value = '';
     titleInput.value = '';
+	priceInput.value = '';
   };
   recentMenuButton.onclick();
 }, false);
