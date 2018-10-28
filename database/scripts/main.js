@@ -34,8 +34,6 @@ var myPostsMenuButton = document.getElementById('menu-my-posts');
 var myTopPostsMenuButton = document.getElementById('menu-my-top-posts');
 var listeningFirebaseRefs = [];
 
-var searchButton = document.getElementById('launcher_search');
-var searchText = document.getElementById('text_search');
 
 var photo = document.getElementById('get_file').onclick = function() {
     document.getElementById('my_file').click();
@@ -459,9 +457,6 @@ window.addEventListener('load', function() {
   };
   myTopPostsMenuButton.onclick = function() {
     showSection(topUserPostsSection, myTopPostsMenuButton);
-  };
-  searchButton.onclick = function() {
-
   };
   addButton.onclick = function() {
     showSection(addPost);
