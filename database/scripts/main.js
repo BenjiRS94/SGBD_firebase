@@ -28,10 +28,10 @@ var addPost = document.getElementById('add-post');
 var addButton = document.getElementById('add');
 var recentPostsSection = document.getElementById('recent-posts-list');
 var userPostsSection = document.getElementById('user-posts-list');
-var topUserPostsSection = document.getElementById('top-user-posts-list');
+//var topUserPostsSection = document.getElementById('top-user-posts-list');
 var recentMenuButton = document.getElementById('menu-recent');
 var myPostsMenuButton = document.getElementById('menu-my-posts');
-var myTopPostsMenuButton = document.getElementById('menu-my-top-posts');
+// var myTopPostsMenuButton = document.getElementById('menu-my-top-posts');
 var listeningFirebaseRefs = [];
 
 
@@ -99,7 +99,7 @@ function createPostElement(postId, title, text, author, authorId, authorPic, pri
 
   var html =
       '<div class="post post-' + postId + ' mdl-cell mdl-cell--12-col ' +
-                  'mdl-cell--6-col-tablet mdl-cell--4-col-desktop mdl-grid mdl-grid--no-spacing">' +
+                  'mdl-cell--6-col-tablet mdl-cell--12-col-desktop mdl-grid mdl-grid--no-spacing">' +
         '<div class="mdl-card mdl-shadow--2dp">' +
           '<div class="mdl-card__title mdl-color--light-blue-600 mdl-color-text--white">' +
             '<h4 class="mdl-card__title-text"></h4>' +
@@ -309,7 +309,7 @@ function startDatabaseQueries() {
   };
 
   // Fetching and displaying all posts of each sections.
-  fetchPosts(topUserPostsRef, topUserPostsSection);
+  //fetchPosts(topUserPostsRef, topUserPostsSection);
   fetchPosts(recentPostsRef, recentPostsSection);
   fetchPosts(userPostsRef, userPostsSection);
 
@@ -337,7 +337,7 @@ function writeUserData(userId, name, email, imageUrl) {
  */
 function cleanupUi() {
   // Remove all previously displayed posts.
-  topUserPostsSection.getElementsByClassName('posts-container')[0].innerHTML = '';
+  //topUserPostsSection.getElementsByClassName('posts-container')[0].innerHTML = '';
   recentPostsSection.getElementsByClassName('posts-container')[0].innerHTML = '';
   userPostsSection.getElementsByClassName('posts-container')[0].innerHTML = '';
 
@@ -401,11 +401,11 @@ function newPostForCurrentUser(title, text, price, photo) {
 function showSection(sectionElement, buttonElement) {
   recentPostsSection.style.display = 'none';
   userPostsSection.style.display = 'none';
-  topUserPostsSection.style.display = 'none';
+  //topUserPostsSection.style.display = 'none';
   addPost.style.display = 'none';
   recentMenuButton.classList.remove('is-active');
   myPostsMenuButton.classList.remove('is-active');
-  myTopPostsMenuButton.classList.remove('is-active');
+  //myTopPostsMenuButton.classList.remove('is-active');
 
   if (sectionElement) {
     sectionElement.style.display = 'block';
@@ -454,10 +454,10 @@ window.addEventListener('load', function() {
   };
   myPostsMenuButton.onclick = function() {
     showSection(userPostsSection, myPostsMenuButton);
-  };
+  }; /*
   myTopPostsMenuButton.onclick = function() {
     showSection(topUserPostsSection, myTopPostsMenuButton);
-  };
+  }; */
   addButton.onclick = function() {
     showSection(addPost);
     messageInput.value = '';
