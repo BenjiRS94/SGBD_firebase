@@ -34,17 +34,17 @@ var myPostsMenuButton = document.getElementById('menu-my-posts');
 // var myTopPostsMenuButton = document.getElementById('menu-my-top-posts');
 var listeningFirebaseRefs = [];
 
-
+/*
 var photo = document.getElementById('get_file').onclick = function() {
     document.getElementById('my_file').click();
 };
-
+*/
 
 /**
  * Saves a new post to the Firebase DB.
  */
 // [START write_fan_out]
-function writeNewPost(uid, username, photo, title, body, price) {
+function writeNewPost(uid, username/*, photo*/, title, body, price) {
   // A post entry.
   var postData = {
     author: username,
@@ -52,7 +52,7 @@ function writeNewPost(uid, username, photo, title, body, price) {
     body: body,
     title: title,
     starCount: 0,
-    objectPic: photo,
+    //objectPic: photo,
 	price: price
   };
 
@@ -146,7 +146,7 @@ function createPostElement(postId, title, text, author, authorId, authorPic, pri
   postElement.getElementsByClassName('text')[0].innerText = text;
   postElement.getElementsByClassName('mdl-card__title-text')[0].innerText = title;
   postElement.getElementsByClassName('avatar')[0].style.backgroundImage = 'url("' +
-      (authorPic || './silhouette.jpg') + '")';
+      (authorPic || './silhouette2.jpg') + '")';
   postElement.getElementsByClassName('price')[0].innerText = price + " €";
 
 	  
@@ -381,14 +381,14 @@ function onAuthStateChanged(user) {
 /**
  * Creates a new post for the current user.
  */
-function newPostForCurrentUser(title, text, price, photo) {
+function newPostForCurrentUser(title, text, price/*, photo*/) {
   // [START single_value_read]
   var userId = firebase.auth().currentUser.uid;
   return firebase.database().ref('/users/' + userId).once('value').then(function(snapshot) {
     var username = (snapshot.val() && snapshot.val().username) || 'Anonymous';
     // [START_EXCLUDE]
     return writeNewPost(firebase.auth().currentUser.uid, username,
-      photo,
+      //photo,
       title, text, price);
     // [END_EXCLUDE]
   });
@@ -437,9 +437,9 @@ window.addEventListener('load', function() {
     var text = messageInput.value;
     var title = titleInput.value;
 	var price = priceInput.value;
-	var photo = photo.value;
+	//var photo = photo.value;
     if (text && title && price) {
-      newPostForCurrentUser(title, text, price, photo).then(function() {
+      newPostForCurrentUser(title, text, price/*, photo*/).then(function() {
         myPostsMenuButton.click();
       });
       messageInput.value = '';
