@@ -21,6 +21,7 @@ var messageForm = document.getElementById('message-form');
 var messageInput = document.getElementById('new-post-message');
 var priceInput = document.getElementById('new-post-price');
 var titleInput = document.getElementById('new-post-title');
+var picInput = document.getElementById('new-post-image');
 var signInButton = document.getElementById('sign-in-button');
 var signOutButton = document.getElementById('sign-out-button');
 var splashPage = document.getElementById('page-splash');
@@ -44,7 +45,11 @@ var photo = document.getElementById('get_file').onclick = function() {
  * Saves a new post to the Firebase DB.
  */
 // [START write_fan_out]
+<<<<<<< HEAD
+function writeNewPost(uid, username/*, photo*/, title, body, price, pic) {
+=======
 function writeNewPost(uid, username/*, photo*/, title, body, price) {
+>>>>>>> origin/master
   // A post entry.
   var postData = {
     author: username,
@@ -52,6 +57,10 @@ function writeNewPost(uid, username/*, photo*/, title, body, price) {
     body: body,
     title: title,
     starCount: 0,
+<<<<<<< HEAD
+	objectPic: pic,
+=======
+>>>>>>> origin/master
     //objectPic: photo,
 	price: price
   };
@@ -94,7 +103,7 @@ function toggleStar(postRef, uid) {
 /**
  * Creates a post element.
  */
-function createPostElement(postId, title, text, author, authorId, authorPic, price) {
+function createPostElement(postId, title, text, author, authorId, objectPic, price) {
   var uid = firebase.auth().currentUser.uid;
 
   var html =
@@ -146,7 +155,11 @@ function createPostElement(postId, title, text, author, authorId, authorPic, pri
   postElement.getElementsByClassName('text')[0].innerText = text;
   postElement.getElementsByClassName('mdl-card__title-text')[0].innerText = title;
   postElement.getElementsByClassName('avatar')[0].style.backgroundImage = 'url("' +
+<<<<<<< HEAD
+      (objectPic ) + '")';
+=======
       (authorPic || './silhouette2.jpg') + '")';
+>>>>>>> origin/master
   postElement.getElementsByClassName('price')[0].innerText = price + " €";
 
 	  
@@ -289,7 +302,7 @@ function startDatabaseQueries() {
       var containerElement = sectionElement.getElementsByClassName('posts-container')[0];
       // if (data.val().starCount == 1) {  primer ho demano tot i despres ja filtrare
         containerElement.insertBefore(
-          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().authorPic, data.val().price),
+          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().objectPic, data.val().price),
           containerElement.firstChild);
       // }
       });
@@ -381,7 +394,11 @@ function onAuthStateChanged(user) {
 /**
  * Creates a new post for the current user.
  */
+<<<<<<< HEAD
+function newPostForCurrentUser(title, text, price/*, photo*/,pic) {
+=======
 function newPostForCurrentUser(title, text, price/*, photo*/) {
+>>>>>>> origin/master
   // [START single_value_read]
   var userId = firebase.auth().currentUser.uid;
   return firebase.database().ref('/users/' + userId).once('value').then(function(snapshot) {
@@ -389,7 +406,11 @@ function newPostForCurrentUser(title, text, price/*, photo*/) {
     // [START_EXCLUDE]
     return writeNewPost(firebase.auth().currentUser.uid, username,
       //photo,
+<<<<<<< HEAD
+      title, text, price,pic);
+=======
       title, text, price);
+>>>>>>> origin/master
     // [END_EXCLUDE]
   });
   // [END single_value_read]
@@ -437,9 +458,15 @@ window.addEventListener('load', function() {
     var text = messageInput.value;
     var title = titleInput.value;
 	var price = priceInput.value;
+<<<<<<< HEAD
+	var pic = picInput.value;
+    if (text && title && price) {
+      newPostForCurrentUser(title, text, price/*, photo*/,pic).then(function() {
+=======
 	//var photo = photo.value;
     if (text && title && price) {
       newPostForCurrentUser(title, text, price/*, photo*/).then(function() {
+>>>>>>> origin/master
         myPostsMenuButton.click();
       });
       messageInput.value = '';
